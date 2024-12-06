@@ -1,4 +1,4 @@
-// home-controller.js
+
 const home = async (req, res) => {
     try {
         res.status(200).send("Welcome to Backend");
@@ -10,7 +10,8 @@ const home = async (req, res) => {
 
 const register = async(req,res)=>{
     try {
-        res.status(200).send("Welcome to Register");
+        console.log(req.body)
+        res.status(200).json({message:req.body});
     } catch (err) {
         console.error(err);
         res.status(400).send("Page Not Found");
