@@ -1,4 +1,5 @@
 const User = require("../models/user-model");
+const bcrypt=require("bcryptjs")
 
 const home = async (req, res) => {
     try {
@@ -25,8 +26,10 @@ const register = async (req, res) => {
             return res.status(400).json({ msg: "Email already exists" });
         }
 
-        
-        const newUser = await User.create({ username, email, password, status });
+        const saltRound = 10;
+        const hash_password = await bcrypt.hash(password,saltRound);
+
+        const newUser = await User.create({ username, email, password:hash_password, status });
 
         res.status(201).json({ msg: "User registered successfully", user: newUser });
     } catch (err) {
@@ -34,5 +37,20 @@ const register = async (req, res) => {
         res.status(500).send("Server Error");
     }
 };
+const getRegister = async (req, res) => {
+    try {
+        res.status(200).send("Welcome to Register Page");
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
 
-module.exports = { home, register };
+
+
+// const addProduct = async (req,res) =>{
+
+
+// }
+
+module.exports = { home, register,getRegister };
