@@ -30,6 +30,8 @@ const register = async (req, res) => {
 
         const newUser = await User.create({ username, email, password: hash_password, status });
 
+       
+
         res.status(201).json({ 
             msg: "Registration Successful", 
             token: await newUser.generateToken(), 
