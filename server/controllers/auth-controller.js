@@ -56,29 +56,38 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        
         if (!email || !password) {
             return res.status(400).json({ msg: "All fields are required" });
         }
 
-        const userExist = await User.findOne({ email });
-        if (!userExist) {
-            return res.status(401).json({ msg: "Invalid Email or Password" });
-        }
-
-        const user = await userExist.comparePassword(password);
+        
+        const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ msg: "Invalid Email or Password" });
         }
 
-        res.status(200).json({ 
+       
+        // const isMatch = await user.comparePassword(password); 
+        // if (!isMatch) {
+        //     return res.status(401).json({ msg: "Invalid Email or Password" });
+        // }
+
+        const token = await user.generateToken(); 
+
+       
+        return res.status(200).json({ 
             msg: "Login Successful", 
-            token: await userExist.generateToken(), 
-            userId: userExist._id.toString() 
+            token, 
+            userId: user._id.toString() 
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("Error during login:", err);
+        return res.status(500).send("Server Error");
     }
 };
+
+module.exports = login;
+
 
 module.exports = { home, register, getRegister, login };

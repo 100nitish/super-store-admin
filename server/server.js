@@ -1,4 +1,4 @@
-require("dotenv").config();
+require("dotenv").config(); // Load environment variables from .env file
 
 const express = require("express");
 const cors = require("cors");
@@ -9,20 +9,15 @@ const addProductRoute = require("./router/product-router");
 const connectDb = require("./utils/db");
 const errorMiddleWare = require("./middleware/error-middleware");
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
-const coreOptions = {
-  origin:"http://localhost:5173",
-  methods:"GET,POST,PUT,DELETE,PATCH,HEAD",
-  Credential:true,
-}
 
 app.use(cors()); 
-app.use(express.json());
+app.use(express.json()); 
 
 
-app.use("/api/auth", authRoute);
-app.use("/api/form", addProductRoute);
+app.use("/api/auth", authRoute); 
+app.use("/api/form", addProductRoute); 
 
 
 app.use(errorMiddleWare);
@@ -32,10 +27,10 @@ app.use(errorMiddleWare);
   try {
     await connectDb(); 
     app.listen(PORT, () => {
-      console.log(`Server is Running at Port: ${PORT}`);
+      console.log(`Server is running at http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error("Failed to connect to the database or start server:", error);
+    console.error("Failed to connect to the database or start the server:", error);
     process.exit(1); 
   }
 })();

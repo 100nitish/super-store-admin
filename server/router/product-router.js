@@ -1,7 +1,10 @@
 const express = require("express");
-const router = express.Router();
-const addProductForm = require("../controllers/addProduct-controller")
+const { addProduct } = require("../controllers/addProduct-controller");
+const upload = require("../utils/multerConfig");
 
-router.route("/add-product").post(addProductForm)
+const router = express.Router();
+
+
+router.post("/add-product", upload.single("image"), addProduct);
 
 module.exports = router;
