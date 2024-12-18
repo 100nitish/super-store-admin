@@ -4,53 +4,110 @@ const upload = require('../middleware/upload');
 
 const router = express.Router();
 
-// Route to add a product
-router.post('/add-product', (req, res, next) => {
-  upload.single('image')(req, res, (err) => {
-    if (err) {
-      return res.status(400).json({ error: err.message });
-    }
-    console.log('Uploaded file:', req.file);
-    next();
-  });
-}, async (req, res) => {
-  try {
-    const { name, description, price, category } = req.body;
 
-    // Construct the image URL if uploaded
-    const imagePath = req.file
-      ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-      : null;
-
-    // Save the product to the database
-    const newProduct = new Product({
-      name,
-      description,
-      price,
-      category,
-      image: imagePath,
+router.post(
+  '/add-product',
+  (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      console.log('Uploaded file:', req.file);
+      next();
     });
+  },
+  async (req, res) => {
+    try {
+      const { name, description, price, category } = req.body;
 
-    await newProduct.save();
+      const imagePath = req.file
+        ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+        : null;
 
-    res.status(201).json({ message: 'Product created successfully!', product: newProduct });
+      const newProduct = new Product({
+        name,
+        description,
+        price,
+        category,
+        image: imagePath,
+      });
+
+      await newProduct.save();
+
+      res.status(201).json({ message: 'Product created successfully!', product: newProduct });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+
+router.get('/get-product', async (req, res) => {
+  try {
+    const products = await Product.find();
+
+    const updatedProducts = products.map((product) => ({
+      ...product._doc,
+      image: product.image,
+    }));
+
+    res.status(200).json(updatedProducts);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Route to get all products
-router.get('/get-product', async (req, res) => {
+router.put(
+  '/edit-product/:id',
+  (req, res, next) => {
+    upload.single('image')(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, price, category } = req.body;
+
+      const updatedFields = {
+        name,
+        description,
+        price,
+        category,
+      };
+
+      if (req.file) {
+        updatedFields.image = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+      }
+
+      const updatedProduct = await Product.findByIdAndUpdate(id, updatedFields, { new: true });
+
+      if (!updatedProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      res.status(200).json({ message: 'Product updated successfully!', product: updatedProduct });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+);
+
+
+router.delete('/delete-product/:id', async (req, res) => {
   try {
-    const products = await Product.find();
+    const { id } = req.params;
 
-    // Ensure images are served properly
-    const updatedProducts = products.map((product) => ({
-      ...product._doc,
-      image: product.image, // No change, just returning the image path
-    }));
+    const deletedProduct = await Product.findByIdAndDelete(id);
 
-    res.status(200).json(updatedProducts);
+    if (!deletedProduct) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    res.status(200).json({ message: 'Product deleted successfully!' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
