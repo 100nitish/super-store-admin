@@ -9,13 +9,11 @@ const home = async (req, res) => {
         res.status(500).send("Server Error");
     }
 };
-
 const register = async (req, res) => {
     try {
-        console.log(req.body);
-        const { username, email, password, status } = req.body;
+        const { username, email, password, status, userType } = req.body;
 
-        if (!username || !email || !password || !status) {
+        if (!username || !email || !password || !status || !userType) {
             return res.status(400).json({ msg: "All fields are required" });
         }
 
@@ -24,24 +22,40 @@ const register = async (req, res) => {
             return res.status(400).json({ msg: "Email already exists" });
         }
 
-        // Hash the password before saving
-        const saltRound = 10;
-        const hash_password = await bcrypt.hash(password, saltRound);
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds); 
 
-        const newUser = await User.create({ username, email, password: hash_password, status });
+        const newUser = new User({ 
+            username, 
+            email, 
+            password: hashedPassword, 
+            status, 
+            userType 
+        });
 
-       
+        await newUser.save();
 
-        res.status(201).json({ 
+        const token = await newUser.generateToken(); 
+
+        return res.status(201).json({ 
             msg: "Registration Successful", 
-            token: await newUser.generateToken(), 
-            userId: newUser._id.toString() 
+            token, 
+            userId: newUser._id.toString(),
+            user: { 
+                username: newUser.username, 
+                email: newUser.email, 
+                status: newUser.status, 
+                userType: newUser.userType 
+            }
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        console.error("Error during registration:", err);
+        return res.status(500).json({ msg: "Server Error" });
     }
 };
+
+
+
 
 const getRegister = async (req, res) => {
     try {
@@ -56,38 +70,41 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        
         if (!email || !password) {
             return res.status(400).json({ msg: "All fields are required" });
         }
 
-        
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(401).json({ msg: "Invalid Email or Password" });
         }
 
-       
-        // const isMatch = await user.comparePassword(password); 
+        // const isMatch = await bcrypt.compare(password, user.password); 
         // if (!isMatch) {
         //     return res.status(401).json({ msg: "Invalid Email or Password" });
         // }
 
         const token = await user.generateToken(); 
 
-       
         return res.status(200).json({ 
             msg: "Login Successful", 
             token, 
-            userId: user._id.toString() 
+            userId: user._id.toString(),
+            user: { 
+                username: user.username, 
+                email: user.email, 
+                userType: user.userType 
+            }
         });
     } catch (err) {
         console.error("Error during login:", err);
-        return res.status(500).send("Server Error");
+        return res.status(500).json({ msg: "Server Error" });
     }
 };
 
-module.exports = login;
+
+
+
 
 
 module.exports = { home, register, getRegister, login };

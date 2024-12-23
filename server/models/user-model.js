@@ -22,10 +22,9 @@ const userSchema = new mongoose.Schema({
         default: "active",
         enum: ["active", "inactive", "suspended"],
     },
-    type:{
+    userType:{
         type:String,
-        default:"admin",
-        enum: ["admin","user"]
+        
     }
 });
 
