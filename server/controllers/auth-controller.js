@@ -57,14 +57,53 @@ const register = async (req, res) => {
 
 
 
+
+
+
+
 const getRegister = async (req, res) => {
     try {
-        res.status(200).send("Welcome to Register Page");
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+        const users = await User.find({ userType: "User" }); 
+
+        if (!users.length) {
+            return res.status(404).json({ msg: "No users found with userType 'User'" });
+        }
+
+        return res.status(200).json({
+            msg: "Users fetched successfully",
+            users
+        });
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        return res.status(500).json({ msg: "Internal server error" });
     }
 };
+
+const deleteRegister = async (req, res) => {
+    try {
+        const { id } = req.params; 
+
+       
+        const deleteUser = await User.findByIdAndDelete(id);
+
+      
+        if (!deleteUser) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+       
+        return res.status(200).json({
+            msg: "User deleted successfully",
+            deletedUser: deleteUser,
+        });
+    } catch (error) {
+        console.error("Error deleting user:", error);
+        return res.status(500).json({ msg: "Internal server error" });
+    }
+};
+
+
+
 
 const login = async (req, res) => {
     try {
@@ -107,4 +146,4 @@ const login = async (req, res) => {
 
 
 
-module.exports = { home, register, getRegister, login };
+module.exports = { home, register, getRegister, login, deleteRegister };

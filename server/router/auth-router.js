@@ -1,14 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const authControllers = require("../controllers/auth-controller"); 
-// const {signUpSchema} = require("../validators/auth-validator")
-// const {validate}= require("../middleware/validate-middleware")
+
 
 router.route("/").get(authControllers.home);
 router.route("/register").post( authControllers.register);
-router.route("/register").get(authControllers.getRegister);
+router.route('/get-register').get(authControllers.getRegister);
+router.route('/delete-register/:id').delete(authControllers.deleteRegister);
+
 router.route("/login").post(authControllers.login);
-// router.route("/add-product").post(authControllers.addProduct);
+
 
 
 module.exports = router;
