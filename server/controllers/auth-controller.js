@@ -105,40 +105,48 @@ const deleteRegister = async (req, res) => {
 
 
 
+
+
 const login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        if (!email || !password) {
-            return res.status(400).json({ msg: "All fields are required" });
-        }
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ msg: "Invalid Email or Password" });
-        }
-
-        // const isMatch = await bcrypt.compare(password, user.password); 
-        // if (!isMatch) {
-        //     return res.status(401).json({ msg: "Invalid Email or Password" });
-        // }
-
-        const token = await user.generateToken(); 
-
-        return res.status(200).json({ 
-            msg: "Login Successful", 
-            token, 
-            userId: user._id.toString(),
-            user: { 
-                username: user.username, 
-                email: user.email, 
-                userType: user.userType 
-            }
-        });
-    } catch (err) {
-        console.error("Error during login:", err);
-        return res.status(500).json({ msg: "Server Error" });
+    if (!email || !password) {
+      return res.status(400).json({ msg: "All fields are required" });
     }
+
+    console.log("Looking for user with email:", email);
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ msg: "Invalid Email or Password" });
+    }
+    console.log("User found:", user);
+
+    
+    // const isMatch = await bcrypt.compare(password, user.password);
+    // if (!isMatch) {
+    //   return res.status(401).json({ msg: "Invalid Email or Password" });
+    // }
+
+    
+    console.log("Generating token for user:", user._id);
+    const token = await user.generateToken();
+    console.log("Generated token:", token);
+
+    return res.status(200).json({
+      msg: "Login Successful",
+      token,
+      userId: user._id.toString(),
+      user: {
+        username: user.username,
+        email: user.email,
+        userType: user.userType,
+      },
+    });
+  } catch (err) {
+    console.error("Error during login:", err.stack || err);
+    return res.status(500).json({ msg: "Server Error" });
+  }
 };
 
 
